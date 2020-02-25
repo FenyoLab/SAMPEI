@@ -1,14 +1,24 @@
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("MGF Query File", type=str)
-parser.add_argument("MGF Target File", type=str)
-parser.add_argument("Max Peaks per Target", type=int)
-parser.add_argument("MZ Error", type=int)
-parser.add_argument("MZ Error Type", type=str, choices=["ppm"])
-parser.add_argument("ID File", type=str)
-parser.add_argument("Output Directory", type=str)
-parser.add_argument("filter", type=bool)
+from src.agnostic_search.driver import main as driver
 
-args = parser.parse_args()
-print(args)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mgfQueryFile", type=str)
+    parser.add_argument("mgfTargetFile", type=str)
+    parser.add_argument("IdFile", type=str)
+    parser.add_argument("-p", "--max-peaks-per-target", type=int, default=20)
+    parser.add_argument("-e", "--mz-error", type=int, default=20)
+    parser.add_argument(
+        "-t", "--mz-error-type", type=str, choices=["ppm"], default="ppm"
+    )
+    parser.add_argument("-O", "--output-directory", type=str)
+    parser.add_argument("-f", "--filter", action="store_true")
+
+    args = parser.parse_args()
+    driver(args)
+
+
+if __name__ == "__main__":
+    main()

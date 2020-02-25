@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "src.agnostic_search.cli",
+            "args": [
+                "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "f2",
+                "input.list"
+            ]
+        },
+        {
             "name": "Agnostic Search",
             "type": "python",
             "request": "launch",
