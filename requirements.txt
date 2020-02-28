@@ -1,4 +1,6 @@
-numpy==1.17.4
-pandas==0.25.3
+numpy==1.18.1
+pandas==1.0.1
 pyteomics==4.2
+notebook==6.0.3
+
 
