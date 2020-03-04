@@ -1,7 +1,25 @@
+import time
+
 from pyteomics import mgf
 from src.agnostic_search.mgf.MGF import MGF
 
 
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if "log_time" in kw:
+            name = kw.get("log_name", method.__name__.upper())
+            kw["log_time"][name] = int((te - ts))
+        else:
+            print("%r: %r  %2.2f s" % (method.__name__, args[0], (te - ts)))
+        return result
+
+    return timed
+
+
+@timeit
 def process(mgf_path):
     """Load the mgf file into an array
 
@@ -14,6 +32,7 @@ def process(mgf_path):
     count = 0
     for f in MGF_FILE:
         tmp = MGF(f["params"], f["m/z array"], f["intensity array"],)
+        # TODO: Num top intensities should be a parameter
         entries.append(tmp)
         # if count == 5:
         #     break

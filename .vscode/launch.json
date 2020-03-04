@@ -10,9 +10,12 @@
             "request": "launch",
             "module": "src.agnostic_search.cli",
             "args": [
-                "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
-                "f2",
-                "input.list"
+                // "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                // "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                // "./data/id_dir/merged_compact_id_file.txt"
+                "~/Data1/agnostic_search/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "~/Data1/agnostic_search/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "~/Data1/agnostic_search/id_dir/merged_compact_id_file.txt"
             ]
         },
         {
