@@ -1,8 +1,21 @@
 import math
 import numpy as np
+import time
 
 from collections import namedtuple
 from typing import Dict
+
+
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        print("%r  %2.2f s" % (method.__name__, (te - ts)))
+        return result
+
+    return timed
+
 
 OVERLAP = namedtuple(
     "Overlap",
@@ -109,7 +122,7 @@ class MGF:
                 if (
                     abs(self.m_zs[target_idx] - query.m_zs[query_idx])
                     < (E) / ppm * query.m_zs[query_idx]
-                    or abs(self.m_zs[target_idx] - query.m_zs[query_idx] + difference)
+                    or abs(self.m_zs[target_idx] - (query.m_zs[query_idx] + difference))
                     < (E) / ppm * query.m_zs[query_idx]
                 ):
                     count += 1

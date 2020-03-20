@@ -1,7 +1,10 @@
 import time
 
 from pyteomics import mgf
+
 from src.agnostic_search.mgf.MGF import MGF
+
+# from MGF import MGF
 
 
 def timeit(method):
@@ -38,7 +41,7 @@ def process(mgf_path):
         #     break
         count += 1
     # Sort the mgf entries using the formula used for lookups to allow for binary searching
-    return sorted(entries, key=lambda mgf: mgf.pepmass * mgf.charge)
+    return sorted(entries, key=lambda mgf: mgf.pepmass_charge)
 
 
 def main(path):

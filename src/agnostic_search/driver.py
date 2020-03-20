@@ -669,7 +669,7 @@ def main(args):
 
     if not df.shape[0]:
         return -1
-
+    # TODO: Flip target and query as there should be fewer queries than targets
     for target in mgf_targets:
 
         window = target.get_window()
