@@ -100,9 +100,8 @@ def calc_peptide_mass(peptide, modifications):
     return mass
 
 
-def calc_peptide_fragments(
-    fragments, peptide, modifications, charge, ion_types, masses
-):
+def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
+    fragments = []
     mass = 0.0
     mod_dict = {}
     if len(modifications) > 0:
@@ -243,5 +242,4 @@ def calc_peptide_fragments(
                                     + "+2",
                                 )
                                 fragments.append(mass_ion_t)
-    return
-
+    return fragments

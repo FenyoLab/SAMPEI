@@ -506,7 +506,6 @@ def theoretical_matched_intensity(
         mod_pos_mass_new = dict(mod_pos_mass)
         mod_pos_mass_unique = {}
 
-        fragments = []
         mgf_pepmatch_ions = []
         sequence_evidence_b = np.zeros(len(pep))
         sequence_evidence_y = np.zeros(len(pep))
@@ -540,7 +539,7 @@ def theoretical_matched_intensity(
             )
             # print (i+1,mod)
 
-        calc_peptide_fragments(fragments, pep, mod, charge, "by", masses)
+        fragments = calc_peptide_fragments(fragments, pep, mod, charge, "by", masses)
         for c in range(charge, 0, -1):
             mass_ion_t = (
                 (calc_peptide_mass(pep, mod) + c * masses["Proton"]) / (1.0 * c),
@@ -670,6 +669,7 @@ def main(args):
     if not df.shape[0]:
         return -1
     # TODO: Flip target and query as there should be fewer queries than targets
+
     for target in mgf_targets:
 
         window = target.get_window()
