@@ -114,3 +114,12 @@ dmypy.json
 
 
 working_output.csv
+
+
+.mypy_cache/
+.pytest_cache/
+
+
+output/
+
+.swp

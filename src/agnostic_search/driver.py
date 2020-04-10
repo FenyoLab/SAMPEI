@@ -24,22 +24,22 @@ def timeit(method):
     return timed
 
 
-def find_query_range(mgf_queries, low, high):
+def find_range(mgf_list, low, high):
     lower_bound = 0
-    upper_bound = len(mgf_queries)
+    upper_bound = len(mgf_list)
     while lower_bound < upper_bound:
         mid = lower_bound + (upper_bound - lower_bound) // 2
-        if low <= mgf_queries[mid].pepmass * mgf_queries[mid].charge:
+        if low <= mgf_list[mid].pepmass * mgf_list[mid].charge:
             upper_bound = mid
         else:
             lower_bound = mid + 1
     low_idx = lower_bound
     lower_bound = 0
-    upper_bound = len(mgf_queries)
+    upper_bound = len(mgf_list)
 
     while lower_bound < upper_bound:
         mid = lower_bound + (upper_bound - lower_bound) // 2
-        if high < mgf_queries[mid].pepmass * mgf_queries[mid].charge:
+        if high < mgf_list[mid].pepmass * mgf_list[mid].charge:
             upper_bound = mid
         else:
             lower_bound = mid + 1
@@ -539,7 +539,7 @@ def theoretical_matched_intensity(
             )
             # print (i+1,mod)
 
-        fragments = calc_peptide_fragments(fragments, pep, mod, charge, "by", masses)
+        fragments = calc_peptide_fragments(pep, mod, charge, "by", masses)
         for c in range(charge, 0, -1):
             mass_ion_t = (
                 (calc_peptide_mass(pep, mod) + c * masses["Proton"]) / (1.0 * c),
@@ -662,7 +662,7 @@ def main(args):
     df.index = df.index.astype(int)
 
     print(df, df.shape, df.index.dtype)
-    q = list(filter(lambda query: query.scan in df.index, mgf_queries))
+    filtered_queries = list(filter(lambda query: query.scan in df.index, mgf_queries))
 
     data = []
 
@@ -673,11 +673,15 @@ def main(args):
     for target in mgf_targets:
 
         window = target.get_window()
-        index_range = find_query_range(q, *window)
+        index_range = find_range(filtered_queries, *window)
 
         best_match = 0.0
         bm = None
-        for query in q[slice(*index_range)]:
+
+        if index_range[0] == index_range[1]:
+            continue
+
+        for query in filtered_queries[slice(*index_range)]:
             result = target.count_matches(query, args.mz_error, args.mz_error_type)
             # TODO: query matched threshold should be a cli argument
             if result.query_matched >= 0.3 and result.query_matched > best_match:
@@ -719,7 +723,7 @@ def main(args):
                 fragment=args.mz_error,
                 fragment_type=args.mz_error_type,
                 frag_mz_min=frag_mz_min,
-                max_peaks_per_scan=args.max_peaks_per_target,
+                max_peaks_per_scan=args.max_peaks_per_scan,
                 mgf_table=mgf_targets,
                 current_target=target,
                 masses=MASSES,
@@ -806,19 +810,95 @@ def main(args):
             "Unique_mod",
         ],
     )
-    print(out_df)
-    out_df.to_csv("test.csv", index=False)
-    # results = pd.DataFrame(
-    #     r,
-    #     columns=[
-    #         "count",
-    #         "target_matched",
-    #         "query_matched",
-    #         "target_log",
-    #         "query_log",
-    #     ],
-    # )
 
     # FIXME: abs difference >= 10 : This should be a cli option
+
+    # output_dir='/gpfs/data/proteomics/projects/Kentsis/data20190726/mouse_trypsin/mouse_luo_fasta-5-20-2019-08-01-14-27-12'
+    # mgf_target_file_prefix='20190620_itaconate_RAW_LPS_trypsin'
+    # output_file='20190620_itaconate_RAW_control_trypsin-20190620_itaconate_RAW_LPS_trypsin-ppm20.0-peaks20'
+    # filter='on'
+
+    # lgp = 0.4
+    # mpi = 0.5
+    # os.chdir(output_dir)
+
+    # if filter == "on":
+    #     print("Reading target ouput..")
+    #     target = pd.read_table(output_file, sep="\t")
+
+    #     print("Filtering unwanted mass shift/modifications...")
+    #     ###remove unexpected modifications produced by x!tandem####
+    #     target_ = target[
+    #         ~(
+    #             target["Modifications"].str.contains("-17.02655")
+    #             | target["Modifications"].str.contains("42.01057")
+    #             | target["Modifications"].str.contains("-18.01056")
+    #         )
+    #     ]
+    #     target_filtered = target_[
+    #         (target_["Largest_gap_percent"] <= lgp)
+    #         & (target_["Matched_peptide_intensity_max"] >= mpi)
+    #     ]
+    #     target_filtered_exclude10 = target_filtered[
+    #         abs(target_filtered["Diff_dalton_bin"]) > 10
+    #     ]
+    #     target_filtered.to_csv(
+    #         output_file.split(".txt")[0]
+    #         + ".lgp."
+    #         + str(lgp)
+    #         + "_mpi."
+    #         + str(mpi)
+    #         + ".txt",
+    #         sep="\t",
+    #         index=False,
+    #     )
+    #     target_filtered_exclude10.to_csv(
+    #         output_file.split(".txt")[0]
+    #         + ".lgp."
+    #         + str(lgp)
+    #         + "_mpi."
+    #         + str(mpi)
+    #         + "_exclude10.txt",
+    #         sep="\t",
+    #         index=False,
+    #     )
+    #     # filter(dir=str(output_dir),output_file=str(output_file+'mqi0.5.filtered.txt'),xtandem=str(xtandem_result),lgp=0.4,mpi=0.5)
+    #     print("Done filtering unwanted mass shift/modifications...")
+
+    #     for file in os.listdir(output_dir):
+    #         if fnmatch.fnmatch(file, mgf_target_file_prefix + "*.t.xml.txt"):
+    #             print("Found xtandem output: " + file)
+    #             xtandem_result = file
+    #             xtandem = xtandem_result
+    #             print("Reading xtandem ouput..")
+    #             xtandem_all = pd.read_table(xtandem, sep="\t")
+    #             target_filtered_exclude10_xtandemresultfiltered = target_filtered_exclude10[
+    #                 ~target_filtered_exclude10.set_index(["Target_scan"]).index.isin(
+    #                     xtandem_all.set_index(["scan"]).index
+    #                 )
+    #             ]
+    #             target_filtered_exclude10_xtandemresultfiltered.to_csv(
+    #                 output_file.split(".txt")[0]
+    #                 + ".lgp."
+    #                 + str(lgp)
+    #                 + "_mpi."
+    #                 + str(mpi)
+    #                 + "_exclude10_noxtandem.txt",
+    #                 sep="\t",
+    #                 index=False,
+    #             )
+    #         else:
+    #             pass
+    if not os.path.exists(args.output_directory):
+        os.mkdir(args.output_directory)
+    output_file = "{}/{}-{}-{}{}-peaks{}.csv".format(
+        args.output_directory,
+        os.path.basename(args.mgfQueryFile[:-4]),
+        os.path.basename(args.mgfTargetFile[:-4]),
+        args.mz_error_type,
+        args.mz_error,
+        args.max_peaks_per_scan,
+    )
+    out_df.to_csv(output_file, index=False)
 
     return 0
