@@ -670,7 +670,7 @@ def main(args):
     if not df.shape[0]:
         return -1
     # TODO: Flip target and query as there should be fewer queries than targets
-    for target in mgf_targets:
+    for t_idx, target in enumerate(mgf_targets):
 
         window = target.get_window()
         index_range = find_range(filtered_queries, *window)
@@ -679,6 +679,9 @@ def main(args):
         bm = None
         if index_range[0] == index_range[1]:
             continue
+
+        if t_idx % 1000 == 0:
+            print(t_idx)
 
         for query in filtered_queries[slice(*index_range)]:
             result = target.count_matches(query, args.mz_error, args.mz_error_type)
@@ -889,16 +892,16 @@ def main(args):
     #         else:
     #             pass
 
-    # if not os.path.exists(args.output_directory):
-    #     os.mkdir(args.output_directory)
-    # output_file = "{}/{}-{}-{}{}-peaks{}.csv".format(
-    #     args.output_directory,
-    #     os.path.basename(args.mgfQueryFile[:-4]),
-    #     os.path.basename(args.mgfTargetFile[:-4]),
-    #     args.mz_error_type,
-    #     args.mz_error,
-    #     args.max_peaks_per_scan,
-    # )
-    # out_df.to_csv(output_file, index=False)
+    if not os.path.exists(args.output_directory):
+        os.mkdir(args.output_directory)
+    output_file = "{}/{}-{}-{}{}-peaks{}.csv".format(
+        args.output_directory,
+        os.path.basename(args.mgfQueryFile[:-4]),
+        os.path.basename(args.mgfTargetFile[:-4]),
+        args.mz_error_type,
+        args.mz_error,
+        args.max_peaks_per_scan,
+    )
+    out_df.to_csv(output_file, index=False)
     print(out_df)
     return 0

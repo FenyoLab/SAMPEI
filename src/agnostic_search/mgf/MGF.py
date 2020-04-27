@@ -2,6 +2,8 @@ import math
 import numpy as np
 import time
 
+from numba import jit
+
 from collections import namedtuple
 from typing import Dict
 
@@ -86,14 +88,47 @@ class MGF:
             (self.pepmass + mz_range) * self.charge,
         )
 
+    @staticmethod
+    @jit(nopython=True)
+    def count_numba(t_mzs, q_mzs, t_int, q_int, tidxs, qidxs, difference, E, ppm):
+        count = 0
+        target_total = 0
+        query_total = 0
+        for query_idx in qidxs:
+            for target_idx in tidxs:
+
+                if (
+                    abs(t_mzs[target_idx] - q_mzs[query_idx])
+                    < (E) / ppm * q_mzs[query_idx]
+                    or abs(t_mzs[target_idx] - (q_mzs[query_idx] + difference))
+                    < (E) / ppm * q_mzs[query_idx]
+                ):
+                    count += 1
+                    target_total += t_int[target_idx]
+                    query_total += q_int[query_idx]
+                    break
+        return (
+            count,
+            target_total,
+            query_total,
+        )
+
     # TODO: Brute force approach needs to be optimized
     def count_matches(self, query, E, measure):
         if measure == "ppm":
             ppm = 1e6
         difference = self.pepmass_charge - query.pepmass_charge
-        count = 0
-        target_total = 0
-        query_total = 0
+        count, target_total, query_total = self.count_numba(
+            self.m_zs,
+            query.m_zs,
+            self.intensities,
+            query.intensities,
+            self.top_idx,
+            query.top_idx,
+            difference,
+            E,
+            ppm,
+        )
         # FIXME: This algorithm should improve the performance
         #      : ALTERNATIVELY a binary sort would work
         #     do {
@@ -110,25 +145,6 @@ class MGF:
         #         j++;
         #     }
         # } while( (i < shortListEntries) && (j < longListEntries) );
-        if self.scan == 45992:
-            print(self.intensities)
-            print(self.top_idx)
-            print(self.intensities[self.top_idx])
-            # FIXME: THIS IS WHY I GET DIFFERENT RESULTS
-            print(difference)
-        for query_idx in query.top_idx:
-            for target_idx in self.top_idx:
-
-                if (
-                    abs(self.m_zs[target_idx] - query.m_zs[query_idx])
-                    < (E) / ppm * query.m_zs[query_idx]
-                    or abs(self.m_zs[target_idx] - (query.m_zs[query_idx] + difference))
-                    < (E) / ppm * query.m_zs[query_idx]
-                ):
-                    count += 1
-                    target_total += self.intensities[target_idx]
-                    query_total += query.intensities[query_idx]
-                    break
         return OVERLAP(
             self.scan,
             query.scan,
