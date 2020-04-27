@@ -147,4 +147,5 @@ class MGF:
             "\tCharge: {0.charge}\n"
             "\tRtins: {0.rts}\n"
             "\tPepmass: {0.pepmass}\n"
+            "\tPepmass Charge: {0.pepmass_charge}\n"
         ).format(self)
