@@ -107,13 +107,13 @@ class MGF:
                     target_total += t_int[target_idx]
                     query_total += q_int[query_idx]
                     break
+
         return (
             count,
             target_total,
             query_total,
         )
 
-    # TODO: Brute force approach needs to be optimized
     def count_matches(self, query, E, measure):
         if measure == "ppm":
             ppm = 1e6
@@ -129,22 +129,7 @@ class MGF:
             E,
             ppm,
         )
-        # FIXME: This algorithm should improve the performance
-        #      : ALTERNATIVELY a binary sort would work
-        #     do {
-        #     status = compare(shortList[i], longList[j]);
-        #     if(status == EQUAL) {
-        #         # Found match!
-        #         i++;
-        #         j++;
-        #     } else if(status == EARLIER) {
-        #         # No match, discard first entry in short list
-        #         i++;
-        #     } else {
-        #         # No match, discard first entry in long list
-        #         j++;
-        #     }
-        # } while( (i < shortListEntries) && (j < longListEntries) );
+
         return OVERLAP(
             self.scan,
             query.scan,
