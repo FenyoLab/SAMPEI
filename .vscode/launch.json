@@ -10,12 +10,12 @@
             "request": "launch",
             "module": "src.agnostic_search.cli",
             "args": [
-                // "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
-                // "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
-                // "./data/id_dir/merged_compact_id_file.txt"
-                "./data/mgf/KRG_MV411_G_all.mgf",
-                "./data/mgf/KRG_MV411_G_all.mgf",
-                "./data/id_dir/KRG_MV411_G_all.filtered.txt"
+                "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "./data/id_dir/merged_compact_id_file.txt"
+                // "./data/mgf/KRG_MV411_G_all.mgf",
+                // "./data/mgf/KRG_MV411_G_all.mgf",
+                // "./data/id_dir/KRG_MV411_G_all.filtered.txt"
             ]
         },
         {
