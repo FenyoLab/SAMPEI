@@ -11,6 +11,7 @@ from src.agnostic_search.masses.masses import (
     calc_peptide_mass,
     calc_peptide_fragments,
 )
+from src.agnostic_search.masses.calculations import select_fragments_scan
 
 
 def timeit(method):
@@ -62,414 +63,6 @@ def calculate_largest_gap(pep, sequence_evidence_b, sequence_evidence_y):
         return largest_gap
 
 
-def select_fragments_scan(
-    scan,
-    frag_mz_min,
-    mgf_pepmatch_ions,
-    sequence_evidence_b,
-    sequence_evidence_y,
-    fragments,
-    precursor_error,
-    precursor_error_type,
-    fragment_error,
-    fragment_error_type,
-    num_intense,
-    mgf_table,
-    current_target,
-):
-    matched_intensity = 0.0
-    matched_intensity_not_parent = 0.0
-    matched_intensity_parent = 0.0
-    # ions = mgf_table[scan]
-    ions = list(
-        zip(
-            current_target.m_zs[current_target.top_idx],
-            current_target.intensities[current_target.top_idx],
-        )
-    )
-    # sort ions for getting most intense
-    if num_intense > 0:
-        ions.sort(
-            key=lambda tup: tup[1], reverse=True
-        )  # sorts descending, by intensity
-    intense_ions = ions[:num_intense]
-    # sort ions for quicker compare
-    ions.sort(key=lambda tup: tup[0])  # sorts ascending, by mz
-    used_ions = np.zeros(len(ions))
-    for frag_mz in fragments:
-        error = fragment_error
-        error_type = fragment_error_type
-        if frag_mz[1].lstrip("-").startswith("[M+H"):
-            error = precursor_error
-            error_type = precursor_error_type
-        count = 0
-        for ion in ions:
-            if error_type == "ppm":
-                if abs(ion[0] - frag_mz[0]) < error * frag_mz[0] / 1e6:
-                    mgf_pepmatch_ions.append([frag_mz[1], frag_mz[0], ion[0], ion[1]])
-                    if frag_mz[1].lstrip("-").startswith("b"):
-                        sequence_evidence_b[
-                            int(
-                                frag_mz[1]
-                                .split("+")[0]
-                                .split("o")[0]
-                                .split("i")[0]
-                                .split("*")[0]
-                                .lstrip("-")
-                                .lstrip("b")
-                            )
-                            - 1
-                        ] += ion[1]
-                    if frag_mz[1].lstrip("-").startswith("y"):
-                        sequence_evidence_y[
-                            int(
-                                frag_mz[1]
-                                .split("+")[0]
-                                .split("o")[0]
-                                .split("i")[0]
-                                .split("*")[0]
-                                .lstrip("-")
-                                .lstrip("y")
-                            )
-                            - 1
-                        ] += ion[1]
-                    if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                        matched_intensity += ion[1]
-                        if frag_mz[1].lstrip("-").startswith("["):
-                            matched_intensity_parent += ion[1]
-                        else:
-                            matched_intensity_not_parent += ion[1]
-                    used_ions[count] = 1
-                elif frag_mz[0] < ion[0]:
-                    break
-            else:
-                if abs(ion[0] - frag_mz[0]) < error:
-                    mgf_pepmatch_ions.append([frag_mz[1], frag_mz[0], ion[0], ion[1]])
-                    if frag_mz[1].lstrip("-").startswith("b"):
-                        sequence_evidence_b[
-                            int(
-                                frag_mz[1]
-                                .split("+")[0]
-                                .split("o")[0]
-                                .split("i")[0]
-                                .split("*")[0]
-                                .lstrip("-")
-                                .lstrip("b")
-                            )
-                            - 1
-                        ] += ion[1]
-                    if frag_mz[1].lstrip("-").startswith("y"):
-                        sequence_evidence_y[
-                            int(
-                                frag_mz[1]
-                                .split("+")[0]
-                                .split("o")[0]
-                                .split("i")[0]
-                                .split("*")[0]
-                                .lstrip("-")
-                                .lstrip("y")
-                            )
-                            - 1
-                        ] += ion[1]
-                    if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                        matched_intensity += ion[1]
-                        if frag_mz[1].lstrip("-").startswith("["):
-                            matched_intensity_parent += ion[1]
-                        else:
-                            matched_intensity_not_parent += ion[1]
-                    used_ions[count] = 1
-                elif frag_mz[0] < ion[0]:
-                    break
-            count += 1
-    if 1 == 1:  # fragment_error_type=='ppm':
-        mgf_pepmatch_ions_isotope1 = []
-        for ion_type, mz_calc, mz_exp, intensity in mgf_pepmatch_ions:
-            error = fragment_error
-            error_type = fragment_error_type
-            if ion_type.lstrip("-").startswith("[M+H"):
-                error = precursor_error
-                error_type = precursor_error_type
-            charge = 1.0
-            if ion_type.endswith("+2"):
-                charge = 2.0
-            if ion_type.endswith("+3"):
-                charge = 3.0
-            mz_ = mz_calc + (13.00335483778 - 12) / charge
-            count = 0
-            for ion in ions:
-                if used_ions[count] == 0:
-                    if error_type == "ppm":
-                        if abs(ion[0] - mz_) < error * mz_ / 1e6:
-                            mgf_pepmatch_ions_isotope1.append(
-                                ["-" + ion_type, mz_, ion[0], ion[1]]
-                            )
-                            if ion_type.lstrip("-").startswith("b"):
-                                sequence_evidence_b[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("b")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if ion_type.lstrip("-").startswith("y"):
-                                sequence_evidence_y[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("y")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                                matched_intensity += ion[1]
-                                if ion_type.lstrip("-").startswith("["):
-                                    matched_intensity_parent += ion[1]
-                                else:
-                                    matched_intensity_not_parent += ion[1]
-                            used_ions[count] = 1
-                        elif mz_ < ion[0]:
-                            break
-                    else:
-                        if abs(ion[0] - mz_) < error:
-                            mgf_pepmatch_ions_isotope1.append(
-                                ["-" + ion_type, mz_, ion[0], ion[1]]
-                            )
-                            if ion_type.lstrip("-").startswith("b"):
-                                sequence_evidence_b[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("b")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if ion_type.lstrip("-").startswith("y"):
-                                sequence_evidence_y[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("y")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                                matched_intensity += ion[1]
-                                if ion_type.lstrip("-").startswith("["):
-                                    matched_intensity_parent += ion[1]
-                                else:
-                                    matched_intensity_not_parent += ion[1]
-                            used_ions[count] = 1
-                        elif mz_ < ion[0]:
-                            break
-                count += 1
-        mgf_pepmatch_ions_isotope2 = []
-        for ion_type, mz_calc, mz_exp, intensity in mgf_pepmatch_ions_isotope1:
-            error = fragment_error
-            error_type = fragment_error_type
-            if ion_type.lstrip("-").startswith("[M+H"):
-                error = precursor_error
-                error_type = precursor_error_type
-            charge = 1.0
-            if ion_type.endswith("+2"):
-                charge = 2.0
-            if ion_type.endswith("+3"):
-                charge = 3.0
-            mz_ = mz_calc + (13.00335483778 - 12) / charge
-            count = 0
-            for ion in ions:
-                if used_ions[count] == 0:
-                    if error_type == "ppm":
-                        if abs(ion[0] - mz_) < error * mz_ / 1e6:
-                            mgf_pepmatch_ions_isotope2.append(
-                                ["-" + ion_type, mz_, ion[0], ion[1]]
-                            )
-                            if ion_type.lstrip("-").startswith("b"):
-                                sequence_evidence_b[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("b")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if ion_type.lstrip("-").startswith("y"):
-                                sequence_evidence_y[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("y")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                                matched_intensity += ion[1]
-                                if ion_type.lstrip("-").startswith("["):
-                                    matched_intensity_parent += ion[1]
-                                else:
-                                    matched_intensity_not_parent += ion[1]
-                            used_ions[count] = 1
-                        elif mz_ < ion[0]:
-                            break
-                    else:
-                        if abs(ion[0] - mz_) < error:
-                            mgf_pepmatch_ions_isotope2.append(
-                                ["-" + ion_type, mz_, ion[0], ion[1]]
-                            )
-                            if ion_type.lstrip("-").startswith("b"):
-                                sequence_evidence_b[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("b")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if ion_type.lstrip("-").startswith("y"):
-                                sequence_evidence_y[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("y")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                                matched_intensity += ion[1]
-                                if ion_type.lstrip("-").startswith("["):
-                                    matched_intensity_parent += ion[1]
-                                else:
-                                    matched_intensity_not_parent += ion[1]
-                            used_ions[count] = 1
-                        elif mz_ < ion[0]:
-                            break
-                count += 1
-        mgf_pepmatch_ions_isotope3 = []
-        for ion_type, mz_calc, mz_exp, intensity in mgf_pepmatch_ions_isotope2:
-            error = fragment_error
-            error_type = fragment_error_type
-            if ion_type.lstrip("-").startswith("[M+H"):
-                error = precursor_error
-                error_type = precursor_error_type
-            charge = 1.0
-            if ion_type.endswith("+2"):
-                charge = 2.0
-            if ion_type.endswith("+3"):
-                charge = 3.0
-            mz_ = mz_calc + (13.00335483778 - 12) / charge
-            count = 0
-            for ion in ions:
-                if used_ions[count] == 0:
-                    if error_type == "ppm":
-                        if abs(ion[0] - mz_) < error * mz_ / 1e6:
-                            mgf_pepmatch_ions_isotope3.append(
-                                ["-" + ion_type, mz_, ion[0], ion[1]]
-                            )
-                            if ion_type.lstrip("-").startswith("b"):
-                                sequence_evidence_b[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("b")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if ion_type.lstrip("-").startswith("y"):
-                                sequence_evidence_y[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("y")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                                matched_intensity += ion[1]
-                                if ion_type.lstrip("-").startswith("["):
-                                    matched_intensity_parent += ion[1]
-                                else:
-                                    matched_intensity_not_parent += ion[1]
-                            used_ions[count] = 1
-                        elif mz_ < ion[0]:
-                            break
-                    else:
-                        if abs(ion[0] - mz_) < error:
-                            mgf_pepmatch_ions_isotope3.append(
-                                ["-" + ion_type, mz_, ion[0], ion[1]]
-                            )
-                            if ion_type.lstrip("-").startswith("b"):
-                                sequence_evidence_b[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("b")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if ion_type.lstrip("-").startswith("y"):
-                                sequence_evidence_y[
-                                    int(
-                                        ion_type.split("+")[0]
-                                        .split("o")[0]
-                                        .split("i")[0]
-                                        .split("*")[0]
-                                        .lstrip("-")
-                                        .lstrip("y")
-                                    )
-                                    - 1
-                                ] += ion[1]
-                            if used_ions[count] == 0 and frag_mz_min < ion[0]:
-                                matched_intensity += ion[1]
-                                if ion_type.lstrip("-").startswith("["):
-                                    matched_intensity_parent += ion[1]
-                                else:
-                                    matched_intensity_not_parent += ion[1]
-                            used_ions[count] = 1
-                        elif mz_ < ion[0]:
-                            break
-                count += 1
-        for value in mgf_pepmatch_ions_isotope1:
-            mgf_pepmatch_ions.append(value)
-        for value in mgf_pepmatch_ions_isotope2:
-            mgf_pepmatch_ions.append(value)
-        for value in mgf_pepmatch_ions_isotope3:
-            mgf_pepmatch_ions.append(value)
-    return matched_intensity, matched_intensity_parent, matched_intensity_not_parent
-
-
 def theoretical_matched_intensity(
     pep,
     scan_str,
@@ -506,9 +99,6 @@ def theoretical_matched_intensity(
         mod_pos_mass_new = dict(mod_pos_mass)
         mod_pos_mass_unique = {}
 
-        mgf_pepmatch_ions = []
-        sequence_evidence_b = np.zeros(len(pep))
-        sequence_evidence_y = np.zeros(len(pep))
         if str(i + 1) not in mod_pos:
             # print ('not'+str(i+1))
             mod_pos_mass_new[str(i + 1)] = str(diff_dalton)
@@ -588,25 +178,29 @@ def theoretical_matched_intensity(
             mz_error_fragment = 0.8
             mz_error_precursor = mz_error_fragment
             mz_error_precursor_type = mz_error_fragment_type
-
+        ions = list(
+            zip(
+                current_target.m_zs[current_target.top_idx],
+                current_target.intensities[current_target.top_idx],
+            )
+        )
         (
             matched_intensity,
-            matched_intensity_parent,
-            matched_intensity_not_parent,
-        ) = select_fragments_scan(
-            scan_str,
-            frag_mz_min,
-            mgf_pepmatch_ions,
+            # matched_intensity_parent,
+            # matched_intensity_not_parent,
             sequence_evidence_b,
             sequence_evidence_y,
+            mgf_pepmatch_ions,
+        ) = select_fragments_scan(
+            frag_mz_min,
             fragments,
             mz_error_precursor,
             mz_error_precursor_type,
             mz_error_fragment,
             mz_error_fragment_type,
             max_peaks_per_scan,
-            mgf_table,
-            current_target,
+            ions,
+            len(pep),
         )
         # print i+1,matched_intensity
         if matched_intensity > matched_intensity_max:
@@ -677,11 +271,10 @@ def main(args):
 
         best_match = 0.0
         bm = None
-        if index_range[0] == index_range[1]:
-            continue
-
         if t_idx % 1000 == 0:
             print(t_idx)
+        if index_range[0] == index_range[1]:
+            continue
 
         for query in filtered_queries[slice(*index_range)]:
             result = target.count_matches(query, args.mz_error, args.mz_error_type)
