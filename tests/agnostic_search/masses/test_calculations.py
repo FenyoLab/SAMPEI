@@ -1,9 +1,15 @@
-def test_find_largest_gap():
-    # scan = None  # Do not need
+from src.agnostic_search.masses.calculations import select_fragments_scan
+import numpy as np
+
+
+def test_select_fragment_scan():
     frag_mz_min = 200
-    # mgf_pepmatch_ions = []  #  should be returned
-    # sequence_evidence_b = 0  #  should be returned
-    # sequence_evidence_y = 0  #  should be returned
+    fragment_error = 20.0
+    fragment_error_type = "ppm"
+    num_intense = 20
+    pep_len = 13
+    precursor_error = 300.0
+    precursor_error_type = "ppm"
     fragments = [
         (-127.01749984343795, "b1"),
         (-145.02806454343795, "b1o"),
@@ -88,13 +94,6 @@ def test_find_largest_gap():
         (1171.593639946562, "[M+H-2*H2O]+1"),
         (1173.5616711365622, "[M+H-2*NH3]+1"),
     ]
-    precursor_error = 300.0
-    precursor_error_type = "ppm"
-    fragment_error = 20.0
-    fragment_error_type = "ppm"
-    num_intense = 20
-    # mgf_table = None  # Do not need
-    # current_target:  pass ions rather
     ions = [
         (173.128067, 28878.576171875),
         (606.359436, 24980.537109375),
@@ -117,11 +116,14 @@ def test_find_largest_gap():
         (701.3925781, 9830.0927734375),
         (1008.497803, 9630.6494140625),
     ]
-    print(
-        frag_mz_min,
-        mgf_pepmatch_ions,
+
+    (
+        matched_intensity,
         sequence_evidence_b,
         sequence_evidence_y,
+        mgf_pepmatch_ions,
+    ) = select_fragments_scan(
+        frag_mz_min,
         fragments,
         precursor_error,
         precursor_error_type,
@@ -129,8 +131,53 @@ def test_find_largest_gap():
         fragment_error_type,
         num_intense,
         ions,
+        pep_len,
     )
-    assert False
+
+    matched_intensity_expected = 31027.6767578125
+    sequence_evidence_b_expected = np.array([0.0 for x in range(13)])
+    sequence_evidence_y_expected = np.array(
+        [
+            25725.16992188,
+            16891.4765625,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            14136.20019531,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+    )
+    mgf_pepmass_ions_expected = [
+        ["y1", 147.11280374999998, 147.1123657, 13019.501953125],
+        ["y1o", 129.10223904999998, 129.1019135, 12705.66796875],
+        ["y2*", 201.12336845, 201.1229095, 16891.4765625],
+        ["y7", 772.4385777699999, 772.4285278, 14136.2001953125],
+    ]
+    assert matched_intensity == matched_intensity_expected
+    assert all(
+        [
+            abs(a - b) < 1e-4
+            for a, b in zip(sequence_evidence_b, sequence_evidence_b_expected)
+        ]
+    )
+    assert all(
+        [
+            abs(a - b) < 1e-4
+            for a, b in zip(sequence_evidence_y, sequence_evidence_y_expected)
+        ]
+    )
+    assert all(
+        [
+            all([a == b for a, b in zip(returned, expected)])
+            for returned, expected in zip(mgf_pepmatch_ions, mgf_pepmass_ions_expected)
+        ]
+    )
 
 
 # matched_intensity = 31027.6767578125

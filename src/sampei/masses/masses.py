@@ -100,7 +100,7 @@ def calc_peptide_mass(peptide, modifications):
     return mass
 
 
-def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
+def calc_peptide_fragments(peptide, modifications, charge, ion_types):
     fragments = []
     mass = 0.0
     mod_dict = {}
@@ -129,10 +129,10 @@ def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
                         aa = aa[1:]
                 mod_dict[aa] = float(mod)
     for ion_type in ion_types:
-        mass = masses[ion_type]
+        mass = MASSES[ion_type]
         if ion_type in "bc":
             for i, p in enumerate(peptide):
-                mass += masses["aa:" + p]
+                mass += MASSES["aa:" + p]
                 if str(i + 1) in mod_dict:
                     mass += mod_dict[str(i + 1)]
                 if p in mod_dict:
@@ -142,7 +142,7 @@ def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
                         prefix = ""
                         if k > 0:
                             prefix = "-"
-                        mass_ = mass + k * (masses["C13"] - masses["C"])
+                        mass_ = mass + k * (MASSES["C13"] - MASSES["C"])
                         mass_ion_t = mass_, prefix + ion_type + str(i + 1)
                         fragments.append(mass_ion_t)
                         if "1" in mod_dict:
@@ -154,37 +154,37 @@ def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
                                 fragments.append(mass_ion_t)
                         for l in range(1, 2, 1):
                             mass_ion_t = (
-                                mass_ - l * masses["H2O"],
+                                mass_ - l * MASSES["H2O"],
                                 prefix + ion_type + str(i + 1) + "o" * l,
                             )
                             fragments.append(mass_ion_t)
                             mass_ion_t = (
-                                mass_ - l * masses["NH3"],
+                                mass_ - l * MASSES["NH3"],
                                 prefix + ion_type + str(i + 1) + "*" * l,
                             )
                             fragments.append(mass_ion_t)
                         if int(charge) > 2:
                             mass_ion_t = (
-                                (mass_ + masses["Proton"]) / 2.0,
+                                (mass_ + MASSES["Proton"]) / 2.0,
                                 prefix + ion_type + str(i + 1) + "+2",
                             )
                             fragments.append(mass_ion_t)
                             for l in range(1, 2, 1):
                                 mass_ion_t = (
-                                    (mass_ - l * masses["H2O"] + masses["Proton"])
+                                    (mass_ - l * MASSES["H2O"] + MASSES["Proton"])
                                     / 2.0,
                                     prefix + ion_type + str(i + 1) + "o" * l + "+2",
                                 )
                                 fragments.append(mass_ion_t)
                                 mass_ion_t = (
-                                    (mass_ - l * masses["NH3"] + masses["Proton"])
+                                    (mass_ - l * MASSES["NH3"] + MASSES["Proton"])
                                     / 2.0,
                                     prefix + ion_type + str(i + 1) + "*" * l + "+2",
                                 )
                                 fragments.append(mass_ion_t)
         else:
             for i in range(len(peptide) - 1, -1, -1):
-                mass += masses["aa:" + peptide[i]]
+                mass += MASSES["aa:" + peptide[i]]
                 if str(i + 1) in mod_dict:
                     mass += mod_dict[str(i + 1)]
                 if peptide[i] in mod_dict:
@@ -194,7 +194,7 @@ def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
                         prefix = ""
                         if k > 0:
                             prefix = "-"
-                        mass_ = mass + k * (masses["C13"] - masses["C"])
+                        mass_ = mass + k * (MASSES["C13"] - MASSES["C"])
                         mass_ion_t = mass_, prefix + ion_type + str(len(peptide) - i)
                         fragments.append(mass_ion_t)
                         if str(len(peptide)) in mod_dict:
@@ -206,24 +206,24 @@ def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
                                 fragments.append(mass_ion_t)
                         for l in range(1, 2, 1):
                             mass_ion_t = (
-                                mass_ - l * masses["H2O"],
+                                mass_ - l * MASSES["H2O"],
                                 prefix + ion_type + str(len(peptide) - i) + "o" * l,
                             )
                             fragments.append(mass_ion_t)
                             mass_ion_t = (
-                                mass_ - l * masses["NH3"],
+                                mass_ - l * MASSES["NH3"],
                                 prefix + ion_type + str(len(peptide) - i) + "*" * l,
                             )
                             fragments.append(mass_ion_t)
                         if int(charge) > 2:
                             mass_ion_t = (
-                                (mass_ + masses["Proton"]) / 2.0,
+                                (mass_ + MASSES["Proton"]) / 2.0,
                                 prefix + ion_type + str(len(peptide) - i) + "+2",
                             )
                             fragments.append(mass_ion_t)
                             for l in range(1, 2, 1):
                                 mass_ion_t = (
-                                    (mass_ - l * masses["H2O"] + masses["Proton"])
+                                    (mass_ - l * MASSES["H2O"] + MASSES["Proton"])
                                     / 2.0,
                                     prefix
                                     + ion_type
@@ -233,7 +233,7 @@ def calc_peptide_fragments(peptide, modifications, charge, ion_types, masses):
                                 )
                                 fragments.append(mass_ion_t)
                                 mass_ion_t = (
-                                    (mass_ - l * masses["NH3"] + masses["Proton"])
+                                    (mass_ - l * MASSES["NH3"] + MASSES["Proton"])
                                     / 2.0,
                                     prefix
                                     + ion_type

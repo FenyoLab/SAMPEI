@@ -60,7 +60,7 @@ def calculate_largest_gap(pep, sequence_evidence_b, sequence_evidence_y):
             gap += 1
             if largest_gap < gap:
                 largest_gap = gap
-        return largest_gap
+    return largest_gap
 
 
 def theoretical_matched_intensity(
@@ -75,7 +75,6 @@ def theoretical_matched_intensity(
     max_peaks_per_scan,
     mgf_table,
     current_target,
-    masses,
 ):
     matched_intensity_max = 0
     mod = ""
@@ -129,10 +128,10 @@ def theoretical_matched_intensity(
             )
             # print (i+1,mod)
 
-        fragments = calc_peptide_fragments(pep, mod, charge, "by", masses)
+        fragments = calc_peptide_fragments(pep, mod, charge, "by")
         for c in range(charge, 0, -1):
             mass_ion_t = (
-                (calc_peptide_mass(pep, mod) + c * masses["Proton"]) / (1.0 * c),
+                (calc_peptide_mass(pep, mod) + c * MASSES["Proton"]) / (1.0 * c),
                 "[M+H]+" + str(c),
             )
             fragments.append(mass_ion_t)
@@ -146,8 +145,8 @@ def theoretical_matched_intensity(
                 mass_ion_t = (
                     (
                         calc_peptide_mass(pep, mod)
-                        - l * masses["H2O"]
-                        + c * masses["Proton"]
+                        - l * MASSES["H2O"]
+                        + c * MASSES["Proton"]
                     )
                     / (1.0 * c),
                     "[M+H-" + l_text + "H2O]+" + str(c),
@@ -156,8 +155,8 @@ def theoretical_matched_intensity(
                 mass_ion_t = (
                     (
                         calc_peptide_mass(pep, mod)
-                        - l * masses["NH3"]
-                        + c * masses["Proton"]
+                        - l * MASSES["NH3"]
+                        + c * MASSES["Proton"]
                     )
                     / (1.0 * c),
                     "[M+H-" + l_text + "NH3]+" + str(c),
@@ -321,7 +320,6 @@ def main(args):
                 max_peaks_per_scan=args.max_peaks_per_scan,
                 mgf_table=mgf_targets,
                 current_target=target,
-                masses=MASSES,
             )
             largest_gap = calculate_largest_gap(
                 peptide,
