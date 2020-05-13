@@ -42,7 +42,6 @@ def select_fragments_scan(
         for ion in ions:
             if ION_MATCHING[error_type](ion[0], frag_mz[0], error):
                 mgf_pepmatch_ions.append([frag_mz[1], frag_mz[0], ion[0], ion[1]])
-                # FIXME: Check that b and y are the only options
                 b_y_ion = frag_mz[1].lstrip("-")[0]
                 if b_y_ion in "by":
                     sequence_evidence[b_y_ion][

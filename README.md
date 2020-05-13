@@ -34,10 +34,10 @@ source venv/bin/activate
 
 Run agnostic search
 ```shell
-python -m src.agnostic_search.cli <query_mgf_path> <target_mgf_path> <id_path>
+python -m src.sampei.cli <query_mgf_path> <target_mgf_path> <id_path>
 ```
 
 Run this for help on the command line arguments for setting the output dir, errors etc
 ```shell
-python -m src.agnostic_search.cli --help
+python -m src.sampei.cli --help
 ```

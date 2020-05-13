@@ -14,11 +14,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/FenyoLab/AgnosticSearch",
     classifiers=[
-        "Programming Language :: Python :: 3.7",
-        "Licencse :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.6",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: MacOS",
         "Operating System :: Unix",
     ],
+    python_requires=">=3.6",
     packages=["src.sampei", "src.sampei.masses", "src.sampei.mgf"],
     entry_points={"console_scripts": ["sampei = src.sampei.cli:main"]},
 )

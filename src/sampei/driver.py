@@ -5,13 +5,13 @@ import pandas as pd
 import pprint
 import time
 
-from src.agnostic_search.mgf.processer import process as mgf_processor
-from src.agnostic_search.masses.masses import (
+from src.sampei.mgf.processer import process as mgf_processor
+from src.sampei.masses.masses import (
     MASSES,
     calc_peptide_mass,
     calc_peptide_fragments,
 )
-from src.agnostic_search.masses.calculations import select_fragments_scan
+from src.sampei.masses.calculations import select_fragments_scan
 
 
 def timeit(method):
@@ -65,7 +65,6 @@ def calculate_largest_gap(pep, sequence_evidence_b, sequence_evidence_y):
 
 def theoretical_matched_intensity(
     pep,
-    scan_str,
     modifications,
     diff_dalton,
     charge,
@@ -73,7 +72,6 @@ def theoretical_matched_intensity(
     fragment_type,
     frag_mz_min,
     max_peaks_per_scan,
-    mgf_table,
     current_target,
 ):
     matched_intensity_max = 0
@@ -185,8 +183,6 @@ def theoretical_matched_intensity(
         )
         (
             matched_intensity,
-            # matched_intensity_parent,
-            # matched_intensity_not_parent,
             sequence_evidence_b,
             sequence_evidence_y,
             mgf_pepmatch_ions,
@@ -206,7 +202,7 @@ def theoretical_matched_intensity(
             matched_intensity_max = matched_intensity
             mod_with_maxmatchedintensity = mod
             mod_with_maxmatchedintensity_u = mod_new_only
-            # mgf_pepmatch_ions_with_maxmatchedintensity=mgf_pepmatch_ions
+            mgf_pepmatch_ions_with_maxmatchedintensity = mgf_pepmatch_ions
             sequence_evidence_b_with_maxmatchedintensity = sequence_evidence_b
             sequence_evidence_y_with_maxmatchedintensity = sequence_evidence_y
     # print  matched_intensity_max
@@ -229,29 +225,25 @@ def main(args):
     Returns: 
         int: exit code of the software
     """
-
-    # Steps:
-    # 1. Parse the id file
-    # 2. Load the MGF files
-    # 3. Compare scans
-    #   3.1 Calculate target scan information
-    #   3.2 Calculate search window
-    #   3.3 Compare within window
-    # 4. Filter
+    # TODO: Add a validation step
     print(os.getcwd())
     print(args)
 
     print("LOADING QUERY MGF")
-    mgf_queries = mgf_processor(os.path.abspath(os.path.expanduser(args.mgfQueryFile)))
+    mgf_queries = mgf_processor(
+        os.path.abspath(os.path.expanduser(args.mgf_query_file)),
+        args.max_peaks_per_scan,
+    )
 
     print("LOADING TARGET MGF")
-    mgf_targets = mgf_processor(os.path.abspath(os.path.expanduser(args.mgfTargetFile)))
+    mgf_targets = mgf_processor(
+        os.path.abspath(os.path.expanduser(args.mgf_target_file)),
+        args.max_peaks_per_scan,
+    )
     print("LOADING ID MGF")
-    mgf_filename = os.path.basename(args.mgfQueryFile).split(".")[0]
-    df = pd.read_table(args.IdFile, index_col="scan")
+    mgf_filename = os.path.basename(args.mgf_query_file).split(".")[0]
+    df = pd.read_table(args.id_file, index_col="scan")
     df = df.loc[df["Filename"] == mgf_filename]
-    # FIXME: This replaces NA values with empty string (either make this clearer or remove if not necessary)
-    # df = df.where((pd.notnull(df)), "")
     df = df.fillna("")
     df.index = df.index.astype(int)
 
@@ -262,7 +254,6 @@ def main(args):
 
     if not df.shape[0]:
         return -1
-    # TODO: Flip target and query as there should be fewer queries than targets
     for t_idx, target in enumerate(mgf_targets):
 
         window = target.get_window()
@@ -276,13 +267,17 @@ def main(args):
             continue
 
         for query in filtered_queries[slice(*index_range)]:
-            result = target.count_matches(query, args.mz_error, args.mz_error_type)
-            # TODO: query matched threshold should be a cli argument
-            if result.query_matched >= 0.3 and result.query_matched > best_match:
+            result = target.count_matches(
+                query, args.fragment_mass_error, args.error_type
+            )
+            if (
+                result.query_matched >= args.matched_query_intensity
+                and result.query_matched > best_match
+            ):
                 best_match = result.query_matched
                 bm = (query, result)
 
-        if bm and bm[1].query_matched >= 0.3:
+        if bm and bm[1].query_matched >= args.matched_query_intensity:
             query_scan_max = bm[0].scan
             peptide = df["peptide"].loc[query_scan_max]
             modifications = df["modifications"].loc[query_scan_max]
@@ -310,15 +305,13 @@ def main(args):
                 sequence_evidence_y_with_maxmatchedintensity,
             ) = theoretical_matched_intensity(
                 peptide,
-                target.scan,
                 modifications,
                 diff_dalton_max,
                 charge=target.charge,
-                fragment=args.mz_error,
-                fragment_type=args.mz_error_type,
+                fragment=args.fragment_mass_error,
+                fragment_type=args.error_type,
                 frag_mz_min=frag_mz_min,
                 max_peaks_per_scan=args.max_peaks_per_scan,
-                mgf_table=mgf_targets,
                 current_target=target,
             )
             largest_gap = calculate_largest_gap(
@@ -326,24 +319,18 @@ def main(args):
                 sequence_evidence_b_with_maxmatchedintensity,
                 sequence_evidence_y_with_maxmatchedintensity,
             )
-            largest_gap_per = largest_gap * 1.0 / len(peptide)
+            largest_gap_per = largest_gap / len(peptide)
             ####### add matched_theoretical_intensity ######
             data.append(
                 [
-                    str(os.path.basename(args.mgfQueryFile)),
+                    str(os.path.basename(args.mgf_query_file)),
                     # str(mgf_query_file_only),
                     # str(mgf_target_file_only),
-                    str(os.path.basename(args.mgfTargetFile)),
+                    str(os.path.basename(args.mgf_target_file)),
                     str("{:.4f}".format(diff_dalton_max)),
                     # str("{:.1f}".format(float(diff_int_max))),
-                    str(
-                        "{:.1f}".format(
-                            float(
-                                math.copysign(
-                                    math.ceil(abs(diff_dalton_max)), diff_dalton_max
-                                )
-                            )
-                        )
+                    float(
+                        math.copysign(math.ceil(abs(diff_dalton_max)), diff_dalton_max)
                     ),
                     bm[0].scan,
                     str(query_scan_mz_max),
@@ -366,9 +353,9 @@ def main(args):
                     str(expect),
                     str(total_MS2_intensity),
                     str(proteins),
-                    "{:.4f}".format(matched_intensity_max / (1.0 * frag_int_sum)),
-                    str(largest_gap),
-                    str(largest_gap_per),
+                    matched_intensity_max / frag_int_sum,
+                    largest_gap,
+                    largest_gap_per,
                     str(mod_with_maxmatchedintensity),
                     str(mod_with_maxmatchedintensity_u),
                 ]
@@ -404,95 +391,75 @@ def main(args):
         ],
     )
 
-    # FIXME: abs difference >= 10 : This should be a cli option
-
-    # output_dir='/gpfs/data/proteomics/projects/Kentsis/data20190726/mouse_trypsin/mouse_luo_fasta-5-20-2019-08-01-14-27-12'
-    # mgf_target_file_prefix='20190620_itaconate_RAW_LPS_trypsin'
-    # output_file='20190620_itaconate_RAW_control_trypsin-20190620_itaconate_RAW_LPS_trypsin-ppm20.0-peaks20'
-    # filter='on'
-
-    # lgp = 0.4
-    # mpi = 0.5
-    # os.chdir(output_dir)
-
-    # if filter == "on":
-    #     print("Reading target ouput..")
-    #     target = pd.read_table(output_file, sep="\t")
-
-    #     print("Filtering unwanted mass shift/modifications...")
-    #     ###remove unexpected modifications produced by x!tandem####
-    #     target_ = target[
-    #         ~(
-    #             target["Modifications"].str.contains("-17.02655")
-    #             | target["Modifications"].str.contains("42.01057")
-    #             | target["Modifications"].str.contains("-18.01056")
-    #         )
-    #     ]
-    #     target_filtered = target_[
-    #         (target_["Largest_gap_percent"] <= lgp)
-    #         & (target_["Matched_peptide_intensity_max"] >= mpi)
-    #     ]
-    #     target_filtered_exclude10 = target_filtered[
-    #         abs(target_filtered["Diff_dalton_bin"]) > 10
-    #     ]
-    #     target_filtered.to_csv(
-    #         output_file.split(".txt")[0]
-    #         + ".lgp."
-    #         + str(lgp)
-    #         + "_mpi."
-    #         + str(mpi)
-    #         + ".txt",
-    #         sep="\t",
-    #         index=False,
-    #     )
-    #     target_filtered_exclude10.to_csv(
-    #         output_file.split(".txt")[0]
-    #         + ".lgp."
-    #         + str(lgp)
-    #         + "_mpi."
-    #         + str(mpi)
-    #         + "_exclude10.txt",
-    #         sep="\t",
-    #         index=False,
-    #     )
-    #     # filter(dir=str(output_dir),output_file=str(output_file+'mqi0.5.filtered.txt'),xtandem=str(xtandem_result),lgp=0.4,mpi=0.5)
-    #     print("Done filtering unwanted mass shift/modifications...")
-
-    #     for file in os.listdir(output_dir):
-    #         if fnmatch.fnmatch(file, mgf_target_file_prefix + "*.t.xml.txt"):
-    #             print("Found xtandem output: " + file)
-    #             xtandem_result = file
-    #             xtandem = xtandem_result
-    #             print("Reading xtandem ouput..")
-    #             xtandem_all = pd.read_table(xtandem, sep="\t")
-    #             target_filtered_exclude10_xtandemresultfiltered = target_filtered_exclude10[
-    #                 ~target_filtered_exclude10.set_index(["Target_scan"]).index.isin(
-    #                     xtandem_all.set_index(["scan"]).index
-    #                 )
-    #             ]
-    #             target_filtered_exclude10_xtandemresultfiltered.to_csv(
-    #                 output_file.split(".txt")[0]
-    #                 + ".lgp."
-    #                 + str(lgp)
-    #                 + "_mpi."
-    #                 + str(mpi)
-    #                 + "_exclude10_noxtandem.txt",
-    #                 sep="\t",
-    #                 index=False,
-    #             )
-    #         else:
-    #             pass
-
     if not os.path.exists(args.output_directory):
         os.mkdir(args.output_directory)
-    output_file = "{}/{}-{}-{}{}-peaks{}.csv".format(
+    output_file = "{}/query-{}.target-{}.error_unit-{}.error-{}.peaks-{}".format(
         args.output_directory,
-        os.path.basename(args.mgfQueryFile[:-4]),
-        os.path.basename(args.mgfTargetFile[:-4]),
-        args.mz_error_type,
-        args.mz_error,
+        os.path.basename(args.mgf_query_file[:-4]),
+        os.path.basename(args.mgf_target_file[:-4]),
+        args.error_type,
+        args.fragment_mass_error,
         args.max_peaks_per_scan,
     )
-    out_df.to_csv(output_file, index=False)
+    if not args.no_filter:
+        output_file += ".lgp-{}.mpi-{}".format(
+            args.largest_gap_percent, args.min_diff_dalton_bin
+        )
+
+        print("Filtering unwanted mass shift/modifications...")
+        #     ###remove unexpected modifications produced by x!tandem####
+        unexpected_modifications = (
+            out_df["Modifications"].str.contains("-17.02655")
+            | out_df["Modifications"].str.contains("42.01057")
+            | out_df["Modifications"].str.contains("-18.01056")
+        ).values.sum()
+
+        out_df = out_df[
+            ~(
+                out_df["Modifications"].str.contains("-17.02655")
+                | out_df["Modifications"].str.contains("42.01057")
+                | out_df["Modifications"].str.contains("-18.01056")
+            )
+        ]
+        num_less_gap_percent = (
+            (out_df["Largest_gap_percent"] <= args.largest_gap_percent).values.sum()
+            & (
+                out_df["Matched_peptide_intensity_max"]
+                >= args.matched_peptide_intensity
+            )
+        ).values.sum()
+        out_df_filtered = out_df[
+            (out_df["Largest_gap_percent"] <= args.largest_gap_percent)
+            & (
+                out_df["Matched_peptide_intensity_max"]
+                >= args.matched_peptide_intensity
+            )
+        ]
+        out_df = out_df_filtered[
+            abs(out_df_filtered["Diff_dalton_bin"]) > args.min_diff_dalton_bin
+        ]
+        if args.write_intermediate:
+            out_df_filtered.to_csv(
+                output_file + ".tab", sep="\t", index=False,
+            )
+            out_df.to_csv(
+                output_file
+                + ".dalton_bin-{}".format(args.min_diff_dalton_bin)
+                + ".tab",
+                sep="\t",
+                index=False,
+            )
+        print("Done filtering unwanted mass shift/modifications...")
+
+        if args.xtandem_xml:
+            output_file += ".noxtandem"
+            print("Reading xtandem ouput..")
+            xtandem_all = pd.read_table(args.xtandem_xml, sep="\t")
+            out_df = out_df[
+                ~out_df.set_index(["Target_scan"]).index.isin(
+                    xtandem_all.set_index(["scan"]).index
+                )
+            ]
+    out_df.to_csv(output_file + ".tab", sep="\t", index=False)
     print(out_df)
     return 0

@@ -1,4 +1,4 @@
-from src.agnostic_search.masses.calculations import select_fragments_scan
+from src.sampei.masses.calculations import select_fragments_scan
 import numpy as np
 
 

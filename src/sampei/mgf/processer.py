@@ -2,7 +2,7 @@ import time
 
 from pyteomics import mgf
 
-from src.agnostic_search.mgf.MGF import MGF
+from src.sampei.mgf.MGF import MGF
 
 # from MGF import MGF
 
@@ -23,7 +23,7 @@ def timeit(method):
 
 
 @timeit
-def process(mgf_path):
+def process(mgf_path, num_intensities=20):
     """Load the mgf file into an array
 
     :param mgf_path: The path of the mgf file to be loaded
@@ -34,11 +34,8 @@ def process(mgf_path):
     entries = []
     count = 0
     for f in MGF_FILE:
-        tmp = MGF(f["params"], f["m/z array"], f["intensity array"],)
-        # TODO: Num top intensities should be a parameter
+        tmp = MGF(f["params"], f["m/z array"], f["intensity array"], num_intensities)
         entries.append(tmp)
-        # if count == 5:
-        #     break
         count += 1
     # Sort the mgf entries using the formula used for lookups to allow for binary searching
     return sorted(entries, key=lambda mgf: mgf.pepmass_charge)

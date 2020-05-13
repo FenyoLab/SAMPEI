@@ -15,4 +15,4 @@ token:
 	find logs/ -type f -printf '%T@ %p\0' | sort -rz | sed -Ezn '1s/[^ ]* //p' | xargs --null grep 'ssh -N -L\|\]  or http:'
 
 clean:
-	rm logs/*.log
+	rm -rf venv
