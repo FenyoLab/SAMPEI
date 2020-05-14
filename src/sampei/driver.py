@@ -14,17 +14,6 @@ from src.sampei.masses.masses import (
 from src.sampei.masses.calculations import select_fragments_scan
 
 
-def timeit(method):
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-        print("%r  %2.2f s" % (method.__name__, (te - ts)))
-        return result
-
-    return timed
-
-
 def find_range(mgf_list, low, high):
     lower_bound = 0
     upper_bound = len(mgf_list)
@@ -215,7 +204,6 @@ def theoretical_matched_intensity(
     )
 
 
-@timeit
 def main(args):
     """The main method for the agnostic search program
 
@@ -226,43 +214,71 @@ def main(args):
         int: exit code of the software
     """
     # TODO: Add a validation step
-    print(os.getcwd())
-    print(args)
+    # TODO: Clean up logging messages
+    print("---------- CONFIGURATION -----------")
+    for k, v in args._get_kwargs():
+        v == "None" if v == None else v
+        print(" - {:<26}: {}".format(k, v))
+    if not os.path.exists(args.output_directory):
+        os.mkdir(args.output_directory)
 
-    print("LOADING QUERY MGF")
+    print("\n---------- LOADING FILES -----------")
+    if not os.path.exists(args.mgf_query_file):
+        print(" - ERROR! QUERY FILE NOT FOUND: ", args.mgf_query_file)
+        return -1
+    print(" - MGF Query File ", end="")
+    mgf_filename = os.path.basename(args.mgf_query_file).split(".")[0]
     mgf_queries = mgf_processor(
         os.path.abspath(os.path.expanduser(args.mgf_query_file)),
         args.max_peaks_per_scan,
     )
+    print(" DONE")
 
-    print("LOADING TARGET MGF")
+    if not os.path.exists(args.mgf_target_file):
+        print(" - ERROR! QUERY FILE NOT FOUND: ", args.mgf_target_file)
+        return -1
+    print(" - MGF Target File", end="")
     mgf_targets = mgf_processor(
         os.path.abspath(os.path.expanduser(args.mgf_target_file)),
         args.max_peaks_per_scan,
     )
-    print("LOADING ID MGF")
-    mgf_filename = os.path.basename(args.mgf_query_file).split(".")[0]
+    print(" DONE")
+    if not os.path.exists(args.id_file):
+        print(" - ERROR! QUERY FILE NOT FOUND: ", args.id_file)
+        return -1
+    print(" - ID File        ", end="")
+
     df = pd.read_table(args.id_file, index_col="scan")
+    id_len = df.shape[0]
     df = df.loc[df["Filename"] == mgf_filename]
     df = df.fillna("")
     df.index = df.index.astype(int)
+    print(" DONE")
 
-    print(df, df.shape, df.index.dtype)
     filtered_queries = list(filter(lambda query: query.scan in df.index, mgf_queries))
+    num_targets = len(mgf_targets)
+    logging_incriment = num_targets // 10 or 1
 
+    print("\n----------- INPUT STATS ------------")
+    print(" - Number of targets              :", num_targets)
+    print(" - Number of queries              :", len(mgf_queries))
+    print(" - Number of ID file entries:     :", id_len)
+    print(" - ID entries matching query file :", df.shape[0])
+    print(" - ID entries matching query scan :", len(filtered_queries))
+
+    print("\n----------- PROCESSING -------------")
     data = []
 
     if not df.shape[0]:
         return -1
     for t_idx, target in enumerate(mgf_targets):
-
         window = target.get_window()
         index_range = find_range(filtered_queries, *window)
-
         best_match = 0.0
         bm = None
-        if t_idx % 1000 == 0:
-            print(t_idx)
+
+        if t_idx % logging_incriment == 0:
+            print(" - Processed {:>3.0f}% of targets".format(t_idx / num_targets * 100))
         if index_range[0] == index_range[1]:
             continue
 
@@ -391,8 +407,6 @@ def main(args):
         ],
     )
 
-    if not os.path.exists(args.output_directory):
-        os.mkdir(args.output_directory)
     output_file = "{}/query-{}.target-{}.error_unit-{}.error-{}.peaks-{}".format(
         args.output_directory,
         os.path.basename(args.mgf_query_file[:-4]),
@@ -402,64 +416,77 @@ def main(args):
         args.max_peaks_per_scan,
     )
     if not args.no_filter:
+        print("\n------------ FILTERING -------------")
         output_file += ".lgp-{}.mpi-{}".format(
             args.largest_gap_percent, args.min_diff_dalton_bin
         )
 
-        print("Filtering unwanted mass shift/modifications...")
         #     ###remove unexpected modifications produced by x!tandem####
+
         unexpected_modifications = (
             out_df["Modifications"].str.contains("-17.02655")
             | out_df["Modifications"].str.contains("42.01057")
             | out_df["Modifications"].str.contains("-18.01056")
-        ).values.sum()
+        )
+        less_gap_percent = out_df["Largest_gap_percent"] <= args.largest_gap_percent
+        over_max_intense = (
+            out_df["Matched_peptide_intensity_max"] >= args.matched_peptide_intensity
+        )
+        dalton_bin = abs(out_df["Diff_dalton_bin"]) > args.min_diff_dalton_bin
 
-        out_df = out_df[
-            ~(
-                out_df["Modifications"].str.contains("-17.02655")
-                | out_df["Modifications"].str.contains("42.01057")
-                | out_df["Modifications"].str.contains("-18.01056")
-            )
-        ]
-        num_less_gap_percent = (
-            (out_df["Largest_gap_percent"] <= args.largest_gap_percent).values.sum()
-            & (
-                out_df["Matched_peptide_intensity_max"]
-                >= args.matched_peptide_intensity
-            )
-        ).values.sum()
-        out_df_filtered = out_df[
-            (out_df["Largest_gap_percent"] <= args.largest_gap_percent)
-            & (
-                out_df["Matched_peptide_intensity_max"]
-                >= args.matched_peptide_intensity
-            )
-        ]
-        out_df = out_df_filtered[
-            abs(out_df_filtered["Diff_dalton_bin"]) > args.min_diff_dalton_bin
-        ]
+        print(
+            " - Unexpected Modifications             :",
+            unexpected_modifications.values.sum(),
+        )
+        print(
+            " - less than gap percent                :", less_gap_percent.values.sum()
+        )
+        print(
+            " - great than matched peptide intensity :", over_max_intense.values.sum()
+        )
+        print(" - inside diff dalton bin range         :", dalton_bin.values.sum())
+
         if args.write_intermediate:
-            out_df_filtered.to_csv(
-                output_file + ".tab", sep="\t", index=False,
-            )
             out_df.to_csv(
                 output_file
                 + ".dalton_bin-{}".format(args.min_diff_dalton_bin)
-                + ".tab",
+                + ".tsv",
                 sep="\t",
                 index=False,
             )
-        print("Done filtering unwanted mass shift/modifications...")
-
+        x_tandem_filter = pd.Series(0)
         if args.xtandem_xml:
-            output_file += ".noxtandem"
-            print("Reading xtandem ouput..")
             xtandem_all = pd.read_table(args.xtandem_xml, sep="\t")
-            out_df = out_df[
-                ~out_df.set_index(["Target_scan"]).index.isin(
-                    xtandem_all.set_index(["scan"]).index
+            output_file += ".noxtandem"
+            x_tandem_filter = ~out_df["Target_scan"].isin(
+                xtandem_all.set_index(["scan"]).index
+            )
+            print(
+                " - X!tandem and target scan match       :",
+                x_tandem_filter.values.sum(),
+            )
+        print(" - rows before filtering                :", out_df.shape[0])
+        print(
+            " - removed rows                         :",
+            (
+                ~(
+                    ~unexpected_modifications
+                    & less_gap_percent
+                    & over_max_intense
+                    & dalton_bin
+                    & x_tandem_filter
                 )
-            ]
-    out_df.to_csv(output_file + ".tab", sep="\t", index=False)
-    print(out_df)
+            ).values.sum(),
+        )
+
+        out_df = out_df[
+            (~unexpected_modifications)
+            & (less_gap_percent & over_max_intense)
+            & (dalton_bin)
+            & (x_tandem_filter)
+        ]
+    print(" - final row count                      :", out_df.shape[0])
+    print("\n--------- WRITING OUTPUT -----------")
+    print(" - output file path:", output_file + ".tsv")
+    out_df.to_csv(output_file + ".tsv", sep="\t", index=False)
     return 0

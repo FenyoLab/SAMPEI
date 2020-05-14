@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="SAMPEI",
-    version="0.0.1",
+    version="0.0.2",
     author="Zhi Li",
     author_email="Zhi.Li@FenyoLab.org",
     description="SAMPEI",
@@ -18,6 +18,12 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: MacOS",
         "Operating System :: Unix",
+    ],
+    install_requires=[
+        "numpy>=1.18.1",
+        "pandas>=1.0.1",
+        "pyteomics>=4.2",
+        "numba>=0.49.0",
     ],
     python_requires=">=3.6",
     packages=["src.sampei", "src.sampei.masses", "src.sampei.mgf"],

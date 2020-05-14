@@ -7,37 +7,3 @@ Tandem mass spectrometry enables high throughput peptide identification in compl
 ![](images/200102_SAMPEI_workflow.png)
 Figure 1. Schematcis of SAMPEI. (A) Example spectra represent the naive and modified peptide where Dm denotes the potential modification at residue F. With database (DB) search, only defined modification is able to be identified (Top). When incorporating DB search with SAMPEI, high quality query spectra was leveraged to identify target spectra with high similarities through three measures, matched query intensity, matched peptide intensity and largest gap percentage
 
-Clone the repository
-```shell
-git clone https://github.com/FenyoLab/AgnosticSearch.git
-```
-
-Navigate to the cloned repository
-```shell
-cd AgnosticSearch
-```
-
-If you have not installed Command Line Tools run this command
-```shell
-xcode-select --install
-```
-
-Create the virtual environment (requires make which comes with Command Line Tools)
-```shell
-make venv
-```
-
-Activate the virtual environment (Do this every time you open a new terminal)
-```shell
-source venv/bin/activate
-```
-
-Run agnostic search
-```shell
-python -m src.sampei.cli <query_mgf_path> <target_mgf_path> <id_path>
-```
-
-Run this for help on the command line arguments for setting the output dir, errors etc
-```shell
-python -m src.sampei.cli --help
-```
