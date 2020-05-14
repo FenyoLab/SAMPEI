@@ -8,14 +8,20 @@
             "name": "Python: Module",
             "type": "python",
             "request": "launch",
-            "module": "src.agnostic_search.cli",
+            "module": "src.sampei.cli",
             "args": [
-                "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
-                "./data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
-                "./data/id_dir/merged_compact_id_file.txt"
-                // "./data/mgf/KRG_MV411_G_all.mgf",
-                // "./data/mgf/KRG_MV411_G_all.mgf",
-                // "./data/id_dir/KRG_MV411_G_all.filtered.txt"
+                // "../sampei_test/data/mgf/test.mgf",
+                // "../sampei_test/data/mgf/test.mgf",
+                // "../sampei_test/data/id_dir/test_id.txt",
+                "../sampei_test/data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "../sampei_test/data/mgf/171202_Ecoli_ctrl2_1ug.mgf",
+                "../sampei_test/data/id_dir/merged_compact_id_file.txt",
+                "--xtandem-xml",
+                "../sampei_test/data/171202_Ecoli_ctrl2_1ug.2019_05_30_14_40_09.t.xml.txt"
+                // "../sampei_test/data/mgf/KRG_MV411_G_all.mgf",
+                // "../sampei_test/data/mgf/KRG_MV411_G_all.mgf",
+                // "../sampei_test/data/id_dir/KRG_MV411_G_all.filtered.txt"
+                // "--no-filter"
             ]
         },
         {

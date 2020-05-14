@@ -129,3 +129,8 @@ data/id_dir/.DS_Store
 data/id_dir/KRG_MV411_G_all.filtered.txt
 data/mgf/KRG_MV411_G_all.mgf
 figures/KRG_num_queries.png
+
+
+/output
+
+*.csv
