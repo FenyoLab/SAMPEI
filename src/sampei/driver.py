@@ -416,10 +416,15 @@ def main(args):
         args.max_peaks_per_scan,
     )
     if not args.no_filter:
+        if args.write_intermediate:
+            out_df.to_csv(
+                output_file + ".tsv", sep="\t", index=False,
+            )
         print("\n------------ FILTERING -------------")
         output_file += ".lgp-{}.mpi-{}".format(
             args.largest_gap_percent, args.min_diff_dalton_bin
         )
+        output_file += ".dalton_bin-{}".format(args.min_diff_dalton_bin)
 
         #     ###remove unexpected modifications produced by x!tandem####
 
@@ -446,14 +451,6 @@ def main(args):
         )
         print(" - inside diff dalton bin range         :", dalton_bin.values.sum())
 
-        if args.write_intermediate:
-            out_df.to_csv(
-                output_file
-                + ".dalton_bin-{}".format(args.min_diff_dalton_bin)
-                + ".tsv",
-                sep="\t",
-                index=False,
-            )
         x_tandem_filter = pd.Series(0)
         if args.xtandem_xml:
             xtandem_all = pd.read_table(args.xtandem_xml, sep="\t")
