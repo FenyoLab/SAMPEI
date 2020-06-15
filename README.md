@@ -1,6 +1,8 @@
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/sampei/README.html)
 
 # SAMPEI
+![](images/SAMPEI.jpg)
+
 
 ## Summary
 Recent studies have revealed diverse amino acid, post-translational and non-canonical modifications of proteins in diverse organisms and tissues. However, their detection and analysis remain hindered by technical limitations. Here, we present a spectral alignment method for the identification of protein modifications using high-resolution mass spectrometry proteomics. Termed SAMPEI for Spectral Alignment-based Modified PEptide Identification, this open-source algorithm is designed for the discovery of functional protein and peptide signaling modifications, without prior knowledge of their identities. Using synthetic standards and controlled chemical labeling experiments, we demonstrate its high specificity and sensitivity for the discovery of sub-stoichiometric protein modifications in complex cellular extracts. SAMPEI mapping of mouse macrophage differentiation revealed diverse post-translational protein modifications, including distinct forms of cysteine itaconatylation. SAMPEI’s robust parameterization and versatility are expected to facilitate the discovery of biological modifications of diverse macromolecules.
