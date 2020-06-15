@@ -103,5 +103,5 @@ The output produced by SAMPEI has columns listed below.
 |Full_mod|Target scan modification|57.02147@C14,71.0377807617@I6,|
 |Unique_mod|Target scan modification identified uniquely by SAMPEI|71.0377807617@I6,|
 
-Citing SAMPEI
+# Citing SAMPEI
 Cifani, Li, Luo, Grivainis, Intlekofer, Fenyö, Kentsis. Discovery of protein modifications using high resolution differential mass spectrometry proteomics.
