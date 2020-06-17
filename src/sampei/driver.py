@@ -255,9 +255,11 @@ def main(args):
     df.index = df.index.astype(int)
     df = df.loc[~df.index.duplicated(keep='first')]
     if 'total_MS2_intensity' not in df:
+        print(' - NOTE: total_MS2_intensity not specified in ID file, set to NA')
         df['total_MS2_intensity'] = np.nan
     if 'expect' not in df:
         df['expect'] = np.nan
+        print(' - NOTE: expect not specified in ID file, set to NA')
     print(" DONE")
 
     filtered_queries = list(filter(lambda query: query.scan in df.index, mgf_queries))
