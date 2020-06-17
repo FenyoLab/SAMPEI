@@ -55,7 +55,7 @@ A separate tab-delimited (tsv) file produced by X!tandem or other database searc
 |charge|Charge state of the query scan|3|
 |proteins|Protein names or accession number|sp_Q03052_PO3F1_HUMAN|
 |Filename|Query mgf file name with no extension|KRG_MV411_G|
-|expect|If using X!tandem in database search, otherwise optinal|1.2e-08|
+|expect|If using X!tandem in database search, otherwise optional|1.2e-08|
 |total_MS2_intensity|If provided by X!tandem, otherwise optional|1659586.90743756|
 
 ### Addiotional Flags
