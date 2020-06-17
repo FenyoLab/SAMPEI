@@ -440,16 +440,12 @@ def main(args):
         dalton_bin = abs(out_df["Diff_dalton_bin"]) > args.min_diff_dalton_bin
 
         print(
-            " - Unexpected Modifications             :",
+            " - Unexpected Modifications       :",
             unexpected_modifications.values.sum(),
         )
-        print(
-            " - less than gap percent                :", less_gap_percent.values.sum()
-        )
-        print(
-            " - great than matched peptide intensity :", over_max_intense.values.sum()
-        )
-        print(" - inside diff dalton bin range         :", dalton_bin.values.sum())
+        print(" - <= than gap percent            :", less_gap_percent.values.sum())
+        print(" - >= matched peptide intensity   :", over_max_intense.values.sum())
+        print(" - inside diff dalton bin range   :", dalton_bin.values.sum())
 
         x_tandem_filter = pd.Series(0)
         if args.xtandem_xml:
@@ -459,12 +455,12 @@ def main(args):
                 xtandem_all.set_index(["scan"]).index
             )
             print(
-                " - X!tandem and target scan match       :",
-                x_tandem_filter.values.sum(),
+                " - X!tandem and target scan match :", x_tandem_filter.values.sum(),
             )
-        print(" - rows before filtering                :", out_df.shape[0])
+        print("------------------------------------")
+        print(" - rows before filtering          :", out_df.shape[0])
         print(
-            " - removed rows                         :",
+            " - removed rows                   :",
             (
                 ~(
                     ~unexpected_modifications
@@ -482,7 +478,7 @@ def main(args):
             & (dalton_bin)
             & (x_tandem_filter)
         ]
-    print(" - final row count                      :", out_df.shape[0])
+    print(" - final row count                :", out_df.shape[0])
     print("\n--------- WRITING OUTPUT -----------")
     print(" - output file path:", output_file + ".tsv")
     out_df.to_csv(output_file + ".tsv", sep="\t", index=False)
