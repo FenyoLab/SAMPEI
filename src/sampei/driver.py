@@ -253,6 +253,11 @@ def main(args):
     df = df.loc[df["Filename"] == mgf_filename]
     df = df.fillna("")
     df.index = df.index.astype(int)
+    df = df.loc[~df.index.duplicated(keep='first')]
+    if 'total_MS2_intensity' not in df:
+        df['total_MS2_intensity'] = np.nan
+    if 'expect' not in df:
+        df['expect'] = np.nan
     print(" DONE")
 
     filtered_queries = list(filter(lambda query: query.scan in df.index, mgf_queries))
