@@ -54,7 +54,7 @@ A separate tab-delimited (tsv) file produced by X!tandem or other database searc
 |modifications|Modification assigned to the sequence by database search (need to end with comma, and if multiple, separated by comma)|42.01057@A1,57.02147@C4,|
 |charge|Charge state of the query scan|3|
 |proteins|Protein names or accession number|sp_Q03052_PO3F1_HUMAN|
-|filename|Query mgf file name with no extension|KRG_MV411_G|
+|Filename|Query mgf file name with no extension|KRG_MV411_G|
 
 ### Addiotional Flags
 
