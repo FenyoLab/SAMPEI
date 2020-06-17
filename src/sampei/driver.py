@@ -423,10 +423,15 @@ def main(args):
         args.max_peaks_per_scan,
     )
     if not args.no_filter:
+        if args.write_intermediate:
+            out_df.to_csv(
+                output_file + ".tsv", sep="\t", index=False,
+            )
         print("\n------------ FILTERING -------------")
         output_file += ".lgp-{}.mpi-{}".format(
             args.largest_gap_percent, args.min_diff_dalton_bin
         )
+        output_file += ".dalton_bin-{}".format(args.min_diff_dalton_bin)
 
         #     ###remove unexpected modifications produced by x!tandem####
 
@@ -442,25 +447,13 @@ def main(args):
         dalton_bin = abs(out_df["Diff_dalton_bin"]) > args.min_diff_dalton_bin
 
         print(
-            " - Unexpected Modifications             :",
+            " - Unexpected Modifications       :",
             unexpected_modifications.values.sum(),
         )
-        print(
-            " - less than gap percent                :", less_gap_percent.values.sum()
-        )
-        print(
-            " - great than matched peptide intensity :", over_max_intense.values.sum()
-        )
-        print(" - inside diff dalton bin range         :", dalton_bin.values.sum())
+        print(" - <= than gap percent            :", less_gap_percent.values.sum())
+        print(" - >= matched peptide intensity   :", over_max_intense.values.sum())
+        print(" - inside diff dalton bin range   :", dalton_bin.values.sum())
 
-        if args.write_intermediate:
-            out_df.to_csv(
-                output_file
-                + ".dalton_bin-{}".format(args.min_diff_dalton_bin)
-                + ".tsv",
-                sep="\t",
-                index=False,
-            )
         x_tandem_filter = pd.Series(0)
         if args.xtandem_xml:
             xtandem_all = pd.read_table(args.xtandem_xml, sep="\t")
@@ -469,12 +462,12 @@ def main(args):
                 xtandem_all.set_index(["scan"]).index
             )
             print(
-                " - X!tandem and target scan match       :",
-                x_tandem_filter.values.sum(),
+                " - X!tandem and target scan match :", x_tandem_filter.values.sum(),
             )
-        print(" - rows before filtering                :", out_df.shape[0])
+        print("------------------------------------")
+        print(" - rows before filtering          :", out_df.shape[0])
         print(
-            " - removed rows                         :",
+            " - removed rows                   :",
             (
                 ~(
                     ~unexpected_modifications
@@ -492,7 +485,7 @@ def main(args):
             & (dalton_bin)
             & (x_tandem_filter)
         ]
-    print(" - final row count                      :", out_df.shape[0])
+    print(" - final row count                :", out_df.shape[0])
     print("\n--------- WRITING OUTPUT -----------")
     print(" - output file path:", output_file + ".tsv")
     out_df.to_csv(output_file + ".tsv", sep="\t", index=False)

@@ -8,7 +8,7 @@ setuptools.setup(
     name="SAMPEI",
     version="0.0.2",
     author="Zhi Li",
-    author_email="Zhi.Li@FenyoLab.org",
+    author_email="Zhi.Li@nyulangone.org",
     description="SAMPEI",
     long_description=long_description,
     long_description_content_type="text/markdown",
