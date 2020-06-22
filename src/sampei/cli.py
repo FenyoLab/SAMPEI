@@ -5,7 +5,9 @@ from src.sampei.driver import main as driver
 
 def main():
     parser = argparse.ArgumentParser(
-        description="SAMPEI is a searching method leveraging high quality query spectra within the same or different dataset to assign target spectra with peptide sequence and undefined modification (mass shift)."
+        description="SAMPEI is a searching method leveraging high quality query spectra within the same or different dataset to assign target spectra with peptide sequence and undefined modification (mass shift).",
+        prog='SAMPEI'
+    
     )
     parser.add_argument(
         "mgf_query_file",
@@ -83,6 +85,7 @@ def main():
         action="store_true",
         help="Write files for each step of filtering.",
     )
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.0.4')
 
     args = parser.parse_args()
     driver(args)

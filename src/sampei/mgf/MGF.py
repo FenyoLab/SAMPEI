@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import re
 import time
 
 from numba import jit
@@ -38,6 +39,7 @@ class MGF:
     __slots__ = [
         "title",
         "scan",
+        "time",
         "rts",
         "pepmass",
         "pepmass_intensity",
@@ -58,8 +60,14 @@ class MGF:
         num_intensities: int = 20,
     ):
         self.title = params["title"]
-        # FIXME: Scan is not always desegnated using .
-        self.scan = int(self.title.split(".")[1])
+
+        _scan_match = re.findall(r'TITLE=Scan\s+([0-9]+),\s+Time=([0-9\.]+),\s+', self.title)
+        if _scan_match:
+            self.scan = int(_scan_match[0][0].split()[1])
+            self.time = _scan_match[0][1]
+        else:
+            self.scan = int(self.title.split(".")[1])
+            self.time = np.nan
         self.rts = params["rtinseconds"]
         self.pepmass = params["pepmass"][0]
         self.pepmass_intensity = (

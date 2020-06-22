@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="SAMPEI",
-    version="0.0.3",
+    version="0.0.4",
     author="Zhi Li",
     author_email="Zhi.Li@nyulangone.org",
     description="SAMPEI",
