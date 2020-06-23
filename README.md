@@ -55,7 +55,7 @@ CHARGE=3+\
 136.0758667 226632.171875\
 148.0606232 279413.0625\
 173.0922699 26675.123046875\
-END IONS\
+END IONS
 
 Example 2:\
 BEGIN IONS\
@@ -68,7 +68,7 @@ CHARGE=2\
 127.615936	226.262482\
 127.961296	208.581024\
 127.989967	221.123886\
-END IONS\
+END IONS
 
 ### ID file
 A separate tab-delimited (tsv) file produced by X!tandem or other database search tools needs to be provided. SAMPEI is applicable to different database search tools, as long as id file contains the following columns with designated column names as listed below.
