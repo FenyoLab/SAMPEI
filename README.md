@@ -42,6 +42,33 @@ sampei <<query_mgf_file_path>> <<target_mgf_file_path>> <<id_file_path>> <<addit
 Three files are required for SAMPEI to run:
 ### Query/Target mgf files
 A pair of mgf files is needed as input files with full path. One is used as query mgf file to perform conventional database search and provide high confidence query spectra. The other mgf file could be the same or different mgf file in which user want to uncover peptide with novel modifications not discovered by conventional search.
+Please make sure mgf file formated as one of the following examples
+
+Example 1:
+BEGIN IONS
+TITLE=Filename.390.390.3
+RTINSECONDS=303.016
+PEPMASS=442.230102539063 171650277.125
+CHARGE=3+
+129.1024323 379843.65625
+130.0500488 108622.1875
+136.0758667 226632.171875
+148.0606232 279413.0625
+173.0922699 26675.123046875
+END IONS
+
+Example 2:
+BEGIN IONS
+TITLE=Scan 4, Time=1.181370, MS2, HCD
+PEPMASS=414.713379
+CHARGE=2
+120.438423	276.109863
+121.133255	185.422791
+122.366203	176.366150
+127.615936	226.262482
+127.961296	208.581024
+127.989967	221.123886
+END IONS
 
 ### ID file
 A separate tab-delimited (tsv) file produced by X!tandem or other database search tools needs to be provided. SAMPEI is applicable to different database search tools, as long as id file contains the following columns with designated column names as listed below.
