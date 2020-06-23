@@ -42,7 +42,7 @@ sampei <<query_mgf_file_path>> <<target_mgf_file_path>> <<id_file_path>> <<addit
 Three files are required for SAMPEI to run:
 ### Query/Target mgf files
 A pair of mgf files is needed as input files with full path. One is used as query mgf file to perform conventional database search and provide high confidence query spectra. The other mgf file could be the same or different mgf file in which user want to uncover peptide with novel modifications not discovered by conventional search.
-Please make sure mgf file formated as one of the following examples
+Please make sure mgf file formated as one of the following examples.
 
 Example 1:\
 BEGIN IONS\
