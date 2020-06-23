@@ -63,7 +63,7 @@ class MGF:
 
         _scan_match = re.findall(r'TITLE=Scan\s+([0-9]+),\s+Time=([0-9\.]+),\s+', self.title)
         if _scan_match:
-            self.scan = int(_scan_match[0][0].split()[1])
+            self.scan = int(_scan_match[0][1])
             self.time = _scan_match[0][1]
         else:
             self.scan = int(self.title.split(".")[1])
