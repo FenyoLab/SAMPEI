@@ -69,7 +69,9 @@ class MGF:
         else:
             self.scan = int(self.title.split(".")[1])
             self.time = 'NA'
-        self.rts = params["rtinseconds"]
+        self.rts = 'NA'
+        if "rtinseconds" in params:
+            self.rts = params["rtinseconds"]
         self.pepmass = params["pepmass"][0]
         self.pepmass_intensity = (
             params["pepmass"][1] if len(params["pepmass"]) > 1 else 0
