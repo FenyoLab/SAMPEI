@@ -61,13 +61,14 @@ class MGF:
     ):
         self.title = params["title"]
 
-        _scan_match = re.findall(r'TITLE=Scan\s+([0-9]+),\s+Time=([0-9\.]+),\s+', self.title)
+        _scan_match = re.findall(r'Scan\W(\S*?),', self.title)
         if _scan_match:
-            self.scan = int(_scan_match[0][1])
-            self.time = _scan_match[0][1]
+            self.scan = int(_scan_match[0])
+            _time_match = re.findall(r'Time=(\S*?),', self.title)
+            self.time = _time_match[0] if _time_match else 'NA'
         else:
             self.scan = int(self.title.split(".")[1])
-            self.time = np.nan
+            self.time = 'NA'
         self.rts = params["rtinseconds"]
         self.pepmass = params["pepmass"][0]
         self.pepmass_intensity = (
