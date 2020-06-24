@@ -85,7 +85,7 @@ def main():
         action="store_true",
         help="Write files for each step of filtering.",
     )
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.0.4')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.0.6')
 
     args = parser.parse_args()
     driver(args)
