@@ -38,7 +38,6 @@ Once sampei has been installed it can be run using the following command:
 ```bash
 sampei <<query_mgf_file_path>> <<target_mgf_file_path>> <<id_file_path>> <<additional_flags>>
 ```
-Demo files can be download at: https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip
 
 Three files are required for SAMPEI to run:
 ### Query/Target mgf files
@@ -74,6 +73,7 @@ END IONS
 ### ID file
 A separate tab-delimited (tsv) file produced by X!tandem or other database search tools needs to be provided. SAMPEI is applicable to different database search tools, as long as id file contains the following columns with designated column names as listed below.
 
+Demo files meet the package requirements can be download [here]. (https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip)
 
 |Column name|Description|Example|
 |-|-|-|
