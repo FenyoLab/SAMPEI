@@ -73,8 +73,6 @@ END IONS
 ### ID file
 A separate tab-delimited (tsv) file produced by X!tandem or other database search tools needs to be provided. SAMPEI is applicable to different database search tools, as long as id file contains the following columns with designated column names as listed below.
 
-Demo files meet the package requirements can be download [here]. (https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip)
-
 |Column name|Description|Example|
 |-|-|-|
 |scan|Scan id of the query scan (integer value)|1234|
@@ -85,6 +83,9 @@ Demo files meet the package requirements can be download [here]. (https://github
 |Filename|Query mgf file name with no extension|KRG_MV411_G|
 |expect|If using X!tandem in database search, otherwise optional|1.2e-08|
 |total_MS2_intensity|If provided by X!tandem, otherwise optional|1659586.90743756|
+
+### Example input files
+Demo mgf and id files meet the package requirements can be download [here]. (https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip)
 
 ### Addiotional Flags
 
