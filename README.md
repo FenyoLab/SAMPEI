@@ -38,6 +38,7 @@ Once sampei has been installed it can be run using the following command:
 ```bash
 sampei <<query_mgf_file_path>> <<target_mgf_file_path>> <<id_file_path>> <<additional_flags>>
 ```
+Demo files can be download at: https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip
 
 Three files are required for SAMPEI to run:
 ### Query/Target mgf files
