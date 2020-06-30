@@ -454,7 +454,7 @@ def main(args):
         print(" - >= matched peptide intensity   :", over_max_intense.values.sum())
         print(" - inside diff dalton bin range   :", dalton_bin.values.sum())
 
-        x_tandem_filter = pd.Series(0)
+        x_tandem_filter = df.index != None
         if args.xtandem_xml:
             xtandem_all = pd.read_table(args.xtandem_xml, sep="\t")
             output_file += ".noxtandem"
