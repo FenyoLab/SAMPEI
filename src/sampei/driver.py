@@ -429,7 +429,7 @@ def main(args):
             )
         print("\n------------ FILTERING -------------")
         output_file += ".lgp-{}.mpi-{}".format(
-            args.largest_gap_percent, args.min_diff_dalton_bin
+            args.largest_gap_percent, args.matched_peptide_intensity
         )
         output_file += ".dalton_bin-{}".format(args.min_diff_dalton_bin)
 
