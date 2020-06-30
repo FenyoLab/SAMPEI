@@ -85,7 +85,7 @@ A separate tab-delimited (tsv) file produced by X!tandem or other database searc
 |total_MS2_intensity|If provided by X!tandem, otherwise optional|1659586.90743756|
 
 ### Example input files
-Demo mgf and id files meet the package requirements can be download [here]. (https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip)
+Demo mgf and id files meet the package requirements can be download [here](https://github.com/FenyoLab/SAMPEI/blob/master/tests/demo_files.zip).
 
 ### Addiotional Flags
 
