@@ -43,7 +43,10 @@ def calculate_largest_gap(pep, sequence_evidence_b, sequence_evidence_y):
     largest_gap = 0
     gap = 0
     for k in range(len(pep) - 1):
-        if sequence_evidence_b[k] > 0 or sequence_evidence_y[len(pep) - 2 - k] > 0:
+        if (
+            sequence_evidence_b[k] > 0
+            or sequence_evidence_y[len(pep) - 2 - k] > 0
+        ):
             gap = 0
         else:
             gap += 1
@@ -102,7 +105,14 @@ def theoretical_matched_intensity(
         mod = ""
         mod_new_only = ""
         for j in mod_pos_mass_new:
-            mod = mod + str(mod_pos_mass_new[j]) + "@" + str(pep[int(j) - 1]) + j + ","
+            mod = (
+                mod
+                + str(mod_pos_mass_new[j])
+                + "@"
+                + str(pep[int(j) - 1])
+                + j
+                + ","
+            )
 
         for u in mod_pos_mass_unique:
             mod_new_only = (
@@ -118,7 +128,8 @@ def theoretical_matched_intensity(
         fragments = calc_peptide_fragments(pep, mod, charge, "by")
         for c in range(charge, 0, -1):
             mass_ion_t = (
-                (calc_peptide_mass(pep, mod) + c * MASSES["Proton"]) / (1.0 * c),
+                (calc_peptide_mass(pep, mod) + c * MASSES["Proton"])
+                / (1.0 * c),
                 "[M+H]+" + str(c),
             )
             fragments.append(mass_ion_t)
@@ -253,16 +264,20 @@ def main(args):
     df = df.loc[df["Filename"] == mgf_filename]
     df = df.fillna("")
     df.index = df.index.astype(int)
-    df = df.loc[~df.index.duplicated(keep='first')]
-    if 'total_MS2_intensity' not in df:
-        print(' - NOTE: total_MS2_intensity not specified in ID file, set to NA')
-        df['total_MS2_intensity'] = np.nan
-    if 'expect' not in df:
-        df['expect'] = np.nan
-        print(' - NOTE: expect not specified in ID file, set to NA')
+    df = df.loc[~df.index.duplicated(keep="first")]
+    if "total_MS2_intensity" not in df:
+        print(
+            " - NOTE: total_MS2_intensity not specified in ID file, set to NA"
+        )
+        df["total_MS2_intensity"] = np.nan
+    if "expect" not in df:
+        df["expect"] = np.nan
+        print(" - NOTE: expect not specified in ID file, set to NA")
     print(" DONE")
 
-    filtered_queries = list(filter(lambda query: query.scan in df.index, mgf_queries))
+    filtered_queries = list(
+        filter(lambda query: query.scan in df.index, mgf_queries)
+    )
     num_targets = len(mgf_targets)
     logging_incriment = num_targets // 10 or 1
 
@@ -285,7 +300,11 @@ def main(args):
         bm = None
 
         if t_idx % logging_incriment == 0:
-            print(" - Processed {:>3.0f}% of targets".format(t_idx / num_targets * 100))
+            print(
+                " - Processed {:>3.0f}% of targets".format(
+                    t_idx / num_targets * 100
+                )
+            )
         if index_range[0] == index_range[1]:
             continue
 
@@ -353,7 +372,9 @@ def main(args):
                     str("{:.4f}".format(diff_dalton_max)),
                     # str("{:.1f}".format(float(diff_int_max))),
                     float(
-                        math.copysign(math.ceil(abs(diff_dalton_max)), diff_dalton_max)
+                        math.copysign(
+                            math.ceil(abs(diff_dalton_max)), diff_dalton_max
+                        )
                     ),
                     bm[0].scan,
                     str(query_scan_mz_max),
@@ -440,9 +461,12 @@ def main(args):
             | out_df["Modifications"].str.contains("42.01057")
             | out_df["Modifications"].str.contains("-18.01056")
         )
-        less_gap_percent = out_df["Largest_gap_percent"] <= args.largest_gap_percent
+        less_gap_percent = (
+            out_df["Largest_gap_percent"] <= args.largest_gap_percent
+        )
         over_max_intense = (
-            out_df["Matched_peptide_intensity_max"] >= args.matched_peptide_intensity
+            out_df["Matched_peptide_intensity_max"]
+            >= args.matched_peptide_intensity
         )
         dalton_bin = abs(out_df["Diff_dalton_bin"]) > args.min_diff_dalton_bin
 
@@ -450,11 +474,17 @@ def main(args):
             " - Unexpected Modifications       :",
             unexpected_modifications.values.sum(),
         )
-        print(" - <= than gap percent            :", less_gap_percent.values.sum())
-        print(" - >= matched peptide intensity   :", over_max_intense.values.sum())
+        print(
+            " - <= than gap percent            :",
+            less_gap_percent.values.sum(),
+        )
+        print(
+            " - >= matched peptide intensity   :",
+            over_max_intense.values.sum(),
+        )
         print(" - inside diff dalton bin range   :", dalton_bin.values.sum())
 
-        x_tandem_filter = out_df.index != None
+        x_tandem_filter = out_df.index is not None
         if args.xtandem_xml:
             xtandem_all = pd.read_table(args.xtandem_xml, sep="\t")
             output_file += ".noxtandem"
@@ -462,7 +492,8 @@ def main(args):
                 xtandem_all.set_index(["scan"]).index
             )
             print(
-                " - X!tandem and target scan match :", x_tandem_filter.values.sum(),
+                " - X!tandem and target scan match :",
+                x_tandem_filter.values.sum(),
             )
         print("------------------------------------")
         print(" - rows before filtering          :", out_df.shape[0])
