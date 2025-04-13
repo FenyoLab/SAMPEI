@@ -5,11 +5,11 @@ with open("README.md", "r") as fh:
 
 
 setuptools.setup(
-    name="SAMPEI",
-    version="0.1.0",
+    name="sampei",
+    version="0.1.2",
     author="Zhi Li",
     author_email="Zhi.Li@nyulangone.org",
-    description="SAMPEI",
+    description="sampei",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/FenyoLab/AgnosticSearch",
