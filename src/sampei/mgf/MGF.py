@@ -94,10 +94,10 @@ class MGF:
 
     #Update to different range (f.e. -50 to +500 Da)
     def get_window(self, upper_window: int = 200, lower_window: int = -50):
-    return (
-        (self.pepmass + lower_window) * self.charge,
-        (self.pepmass + upper_window) * self.charge,
-    )
+        return (
+            (self.pepmass + lower_window) * self.charge,
+            (self.pepmass + upper_window) * self.charge,
+        )
 
     @staticmethod
     @jit(nopython=True)
